@@ -1,26 +1,73 @@
 import { Job, Worker } from "bullmq";
 import dotenv from "dotenv";
 import { supabase } from "./db.js";
+import nodemailer from "nodemailer";
 
 
 dotenv.config();
 
-
-export const emailWorker=new Worker("email-queue",
+    const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+        user: 'andrew48@ethereal.email',
+        pass: 'CZ78zyqNmWztBtq32u'
+    }
+});
+    
+    
+    new Worker("email-queue",
     async(job:Job)=>{
         console.log(job.data);
         console.log("Heloo from worker")
         const {email , campaign_id}=job.data;
         try {
-            const {error}=await supabase
-            .from("email_logs")
-            .insert({
-                recipient_email:email,
-                status:"pending",
-                campaign_id:campaign_id
-            });
+            
+            
+            
+            const message={
+                from: 'Sender Name <triston.kris74@ethereal.email>',
+                to: `Recipient <${email}>`,
+                subject: 'Nodemailer is unicode friendly ✔',
+                text: 'Hello to myself!',
+                html: '<p><b>Hello</b> to myself!</p>'
+            }
+            
+            transporter.sendMail(message,async (error, info) => {
+                     if (error){
+                        console.log('Error occurred. ' + error.message);
+                        const {error :dataerror }=await supabase
+                        .from("email_logs")
+                        .update({
+                            error_message:error.message
+                        })
+                        .match({
+                            campaign_id:campaign_id,
+                            recipient_email:email
+                        });
 
-            if(error) throw error;
+                        throw error;
+
+                    }
+            
+                    console.log('Message sent: %s', info.messageId);
+                    const {error :dataerror }=await supabase
+                        .from("email_logs")
+                        .update({
+                            status:"SENT",
+                            sent_at:new Date(Date.now())
+                        })
+                        .match({
+                            campaign_id:campaign_id,
+                            recipient_email:email
+                        });
+                        if(dataerror){
+                            console.log(dataerror);
+                        }
+                    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+                });
+            
+            
 
         } catch (error) {
         console.error("Worker error:", error);

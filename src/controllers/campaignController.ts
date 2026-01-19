@@ -2,6 +2,7 @@ import type { Response, Request } from "express";
 import { supabase } from "../config/db.js";
 import { addEmailJobsFunction } from "../config/emailProducer.js";
 
+
 export const createCampaign = async (req:Request , res:Response)=>{
     try {
         const { user_id , title , scheduled_at , emails}=req.body;
@@ -14,7 +15,7 @@ export const createCampaign = async (req:Request , res:Response)=>{
         })
         .select()
         .single();
-
+        
         if(!data){
             return res.status(500).json({
                 message:"Unable to create campaign"
@@ -25,8 +26,19 @@ export const createCampaign = async (req:Request , res:Response)=>{
                 error:error
             });
         }
+        const emailsLog= emails.map((email:any) =>({
+            recipient_email:email,
+            campaign_id:data.id,
+            status:"pending"
+        }))
+        const {error:erroremail , data:dataemail }=await supabase
+            .from("email_logs")
+            .insert(emailsLog)
+            
 
-        await addEmailJobsFunction(emails , data.id);
+            if(erroremail) throw erroremail
+
+        await addEmailJobsFunction(emails , data.id, scheduled_at);
         return res.status(200).json({
             message: "Campaign created & emails queued",
             campaign_id: data.id,
