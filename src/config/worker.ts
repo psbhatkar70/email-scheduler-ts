@@ -20,7 +20,7 @@ dotenv.config();
     async(job:Job)=>{
         console.log(job.data);
         console.log("Heloo from worker")
-        const {email , campaign_id}=job.data;
+        const {email , campaign_id , body , subject}=job.data;
         try {
             
             
@@ -28,9 +28,8 @@ dotenv.config();
             const message={
                 from: 'Sender Name <triston.kris74@ethereal.email>',
                 to: `Recipient <${email}>`,
-                subject: 'Nodemailer is unicode friendly ✔',
-                text: 'Hello to myself!',
-                html: '<p><b>Hello</b> to myself!</p>'
+                subject: subject,
+                text: body,
             }
             
             transporter.sendMail(message,async (error, info) => {

@@ -4,11 +4,12 @@ import dotenv from "dotenv";
 import authRoutes from "./Routes/authRoutes.js";
 import campaignRoutes from "./Routes/campaignRoutes.js";
 import redis from "./config/redis.js";
-
+import cors from 'cors';
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.use("/auth",authRoutes);
 app.use("/campaign",campaignRoutes);

@@ -5,7 +5,7 @@ import { addEmailJobsFunction } from "../config/emailProducer.js";
 
 export const createCampaign = async (req:Request , res:Response)=>{
     try {
-        const { user_id , title , scheduled_at , emails}=req.body;
+        const { user_id , title , scheduled_at , emails , body , subject }=req.body;
         const { data ,error}= await supabase
         .from("campaigns")
         .insert({
@@ -38,7 +38,7 @@ export const createCampaign = async (req:Request , res:Response)=>{
 
             if(erroremail) throw erroremail
 
-        await addEmailJobsFunction(emails , data.id, scheduled_at);
+        await addEmailJobsFunction(emails , data.id, scheduled_at , body , subject);
         return res.status(200).json({
             message: "Campaign created & emails queued",
             campaign_id: data.id,
