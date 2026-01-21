@@ -12,7 +12,7 @@ function getDelay(scheduled_at:string){
     }
 
 
-export async function addEmailJobsFunction (emails:string[],campaign_id:string , scheduled_at:string , body:string , subject:string){
+export async function addEmailJobsFunction (emails:string[],campaign_id:string , scheduled_at:string , body:string , subject:string , from :string){
     const jobs=emails.map((email)=>({
         name:"Send email job",
         data:{ email, campaign_id , body , subject},
